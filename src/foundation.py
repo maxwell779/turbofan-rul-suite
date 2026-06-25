@@ -60,5 +60,15 @@ def run(fd="FD001", max_train=3000, seed=42):
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--fd", default="FD001"); ap.add_argument("--max_train", type=int, default=3000)
-    a = ap.parse_args(); run(a.fd, a.max_train)
+    from .config import SUBSETS
+    ap = argparse.ArgumentParser(); ap.add_argument("--fd", default="all"); ap.add_argument("--max_train", type=int, default=3000)
+    a = ap.parse_args()
+    fds = SUBSETS if a.fd == "all" else [a.fd]
+    summary = {}
+    for fd in fds:
+        try:
+            summary[fd] = run(fd, a.max_train)["results"]
+        except Exception as e:
+            print(f"[foundation {fd}] ERR {str(e)[:80]}", flush=True)
+    json.dump(summary, open(OUT / "summary.json", "w"), indent=2)
+    print("foundation done -> experiments/foundation/", flush=True)
