@@ -34,6 +34,8 @@ GRID = {
     "cnnlstm": [dict(ch=c, hid=h, p=d) for c in (32, 64) for h in (64, 96, 128) for d in (0.2, 0.3)],
     "tcn":     [dict(ch=c, levels=l, p=d) for c in (32, 64, 96) for l in (3, 4, 5, 6) for d in (0.1, 0.2)],
     "dlinear": [dict(kernel=k) for k in (15, 25, 35)],
+    "patchtst": [dict(patch=10, stride=5, d_model=dm, layers=ly, revin=rv)
+                 for dm in (64, 128) for ly in (2, 3) for rv in (True, False)],  # RevIN on/off 비교 포함
 }
 LOSSES = {"dlinear": ["mse"]}            # 기본 [mse, asym]
 ML = [("ridge", dict(alpha=1.0)), ("ridge", dict(alpha=10.0)),

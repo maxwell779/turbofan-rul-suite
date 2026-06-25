@@ -3,3 +3,10 @@ numpy
 pandas
 fastapi
 uvicorn[standard]
+# MLOps/XAI/파운데이션 (P4-P5)
+onnx
+onnxruntime
+captum
+transformers
+huggingface_hub
+# momentfm: pip install --no-deps momentfm (py3.13에서 핀 의존성 빌드실패 회피)
