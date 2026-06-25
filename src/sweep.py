@@ -44,7 +44,7 @@ def hp_tag(hp):
     return ",".join(f"{k}{v}" for k, v in hp.items())
 
 
-def gen_configs(fds, seeds, windows):
+def gen_configs(fds, seeds, windows, lrs=(1e-3,)):
     cfgs = []
     for fd in fds:
         for model, hps in GRID.items():
@@ -52,8 +52,9 @@ def gen_configs(fds, seeds, windows):
             for hp in hps:
                 for loss in losses:
                     for w in windows:
-                        for s in seeds:
-                            cfgs.append(dict(fd=fd, model=model, hp=hp, loss=loss, window=w, seed=s))
+                        for lr in lrs:
+                            for s in seeds:
+                                cfgs.append(dict(fd=fd, model=model, hp=hp, loss=loss, window=w, seed=s, lr=lr))
     return cfgs
 
 
@@ -69,12 +70,12 @@ def get_data(fd, window):
     return _CACHE[key]
 
 
-def run_dl(cfg, d, epochs, patience=10, batch=512, lr=1e-3):
+def run_dl(cfg, d, epochs, patience=10, batch=512):
     torch.manual_seed(cfg["seed"]); np.random.seed(cfg["seed"])
     tl = DataLoader(TensorDataset(torch.tensor(d["Xtr"]), torch.tensor(d["ytr"])), batch_size=batch, shuffle=True)
     Xva = torch.tensor(d["Xva"]).to(DEV)
     net = build(cfg["model"], d["n_feat"], d["window"], **cfg["hp"]).to(DEV)
-    opt = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-4)
+    opt = torch.optim.Adam(net.parameters(), lr=cfg.get("lr", 1e-3), weight_decay=1e-4)
     sch = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, factor=0.5, patience=4)
     lf = get_loss(cfg["loss"]); best, bstate, wait = 1e9, None, 0
     for ep in range(epochs):
@@ -112,7 +113,8 @@ def merge():
         print("no shards"); return
     df = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
     df.to_csv(SWEEP / "raw_all.csv", index=False)
-    g = (df.groupby(["fd", "model", "loss", "window", "hp"])
+    if "lr" not in df.columns: df["lr"] = 1e-3
+    g = (df.groupby(["fd", "model", "loss", "window", "lr", "hp"])
            .agg(test_rmse=("test_rmse", "mean"), test_rmse_std=("test_rmse", "std"),
                 nasa=("nasa", "mean"), val_rmse=("val_rmse", "mean"), n=("seed", "count"))
            .reset_index())
@@ -127,14 +129,16 @@ def merge():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fd"); ap.add_argument("--shard", type=int, default=0); ap.add_argument("--of", type=int, default=1)
-    ap.add_argument("--seeds", default="42,7,123"); ap.add_argument("--windows", default="30,40,50")
+    ap.add_argument("--seeds", default="42,7"); ap.add_argument("--windows", default="30,40,50")
+    ap.add_argument("--lrs", default="1e-3,5e-4")
     ap.add_argument("--epochs", type=int, default=60); ap.add_argument("--quick", action="store_true"); ap.add_argument("--merge", action="store_true")
     a = ap.parse_args()
     if a.merge: merge(); return
     fds = [a.fd] if a.fd else SUBSETS
     seeds = [int(x) for x in a.seeds.split(",")]; windows = [int(x) for x in a.windows.split(",")]
+    lrs = [float(x) for x in a.lrs.split(",")]
     epochs = 20 if a.quick else a.epochs
-    cfgs = gen_configs(fds, seeds, windows)
+    cfgs = gen_configs(fds, seeds, windows, lrs)
     mine = cfgs[a.shard::a.of]
     out = SWEEP / f"lb_shard{a.shard}.csv"; rows = []
     # ML은 shard 0에서만(빠름)
@@ -143,7 +147,7 @@ def main():
             d = get_data(fd, windows[0])
             for kind, hp in ML:
                 t0 = time.time(); va, tm = run_ml(kind, hp, d, seeds[0])
-                rows.append(dict(fd=fd, model=kind, loss="-", window=windows[0], hp=hp_tag(hp), seed=seeds[0],
+                rows.append(dict(fd=fd, model=kind, loss="-", window=windows[0], lr=0, hp=hp_tag(hp), seed=seeds[0],
                                  val_rmse=round(va, 3), test_rmse=round(tm["rmse"], 3), nasa=round(tm["nasa_score"], 1), sec=round(time.time()-t0,1)))
     print(f"[shard {a.shard}/{a.of}] configs={len(mine)} of {len(cfgs)} | seeds={seeds} windows={windows} epochs={epochs}", flush=True)
     for i, cfg in enumerate(mine):
@@ -152,7 +156,7 @@ def main():
             vr, tm = run_dl(cfg, d, epochs)
         except Exception as e:
             print(f"  ERR {cfg['model']} {cfg['hp']}: {str(e)[:60]}", flush=True); continue
-        rows.append(dict(fd=cfg["fd"], model=cfg["model"], loss=cfg["loss"], window=cfg["window"], hp=hp_tag(cfg["hp"]),
+        rows.append(dict(fd=cfg["fd"], model=cfg["model"], loss=cfg["loss"], window=cfg["window"], lr=cfg["lr"], hp=hp_tag(cfg["hp"]),
                          seed=cfg["seed"], val_rmse=round(vr, 3), test_rmse=round(tm["rmse"], 3), nasa=round(tm["nasa_score"], 1), sec=round(time.time()-t0, 1)))
         if i % 20 == 0:
             pd.DataFrame(rows).to_csv(out, index=False)
