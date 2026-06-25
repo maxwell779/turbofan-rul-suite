@@ -60,6 +60,44 @@ function spark(host, name, vals) {
   box.innerHTML=`<div class="lab">${name}</div>`; box.appendChild(s); host.appendChild(box);
 }
 
+function hbars(host, items, {h=null, fmt=(v)=>v.toFixed(3), max=null}={}) {
+  host.innerHTML=''; const w=720, pl=70, pr=44, rowh=20, pt=6; const H=h||(items.length*rowh+pt*2);
+  const mx=max!=null?max:Math.max(...items.map(d=>d.val),1e-9); const s=svg(w,H);
+  items.forEach((d,i)=>{ const y=pt+i*rowh; const bw=(d.val/mx)*(w-pl-pr);
+    s.appendChild(el('text',{x:pl-6,y:y+rowh*0.7,'text-anchor':'end','font-size':11,fill:'#475569'})).textContent=d.label;
+    s.appendChild(el('rect',{x:pl,y:y+3,width:Math.max(1,bw),height:rowh-7,rx:3,fill:d.color||'#3b82f6'}));
+    s.appendChild(el('text',{x:pl+bw+5,y:y+rowh*0.7,'font-size':10,fill:'#475569'})).textContent=fmt(d.val);});
+  host.appendChild(s);
+}
+async function drawXai(){ const fd=$('#sel_fd').value;
+  const x=await j(`/api/xai?fd=${fd}&model=tcn`); if(!x.sensor_importance){$('#xai_chart').innerHTML='<div class="dim sm">XAI 데이터 없음(demo 모델 필요)</div>';return;}
+  const top=x.sensor_importance.slice(0,10).map(s=>({label:s.sensor,val:s.importance,color:s.signed<0?'#ef4444':'#3b82f6'}));
+  hbars($('#xai_chart'),top,{fmt:v=>v.toFixed(3)});
+  lineChart($('#xai_chart').appendChild(document.createElement('div')),[{pts:x.time_saliency.map((v,i)=>({x:i,y:v})),color:'#a855f7',w:2}],{h:120,xlab:'시간스텝(과거→현재)',fmt:v=>v.toFixed(2)});
+  $('#xai_chart').insertAdjacentHTML('beforeend','<div class="legend"><span><i style="background:#ef4444"></i>RUL↓ 유도(고장신호)</span><span><i style="background:#a855f7"></i>시간 saliency</span></div>');
+}
+async function drawDrift(){ const fd=$('#sel_fd').value;
+  const dr=await j(`/api/drift?fd=${fd}`); if(!dr.sensors){$('#drift_chart').innerHTML='';return;}
+  const col={alert:'#ef4444',watch:'#f59e0b',stable:'#22c55e'};
+  hbars($('#drift_chart'),dr.sensors.map(s=>({label:s.sensor,val:s.psi,color:col[s.level]})),{fmt:v=>v.toFixed(2),max:Math.max(0.3,...dr.sensors.map(s=>s.psi))});
+  $('#drift_sub').textContent=`${fd} · PSI train↔test · dataset_drift=${dr.dataset_drift} (경보센서 ${dr.alert_sensors.length})`;
+}
+async function drawLatency(){ const fd=$('#sel_fd').value;
+  const L=await j(`/api/latency?fd=${fd}&model=tcn`); const m=L.latency_ms_cpu_bs1; if(!m){$('#lat_chart').innerHTML='<div class="dim sm">지연 데이터 없음</div>';return;}
+  barGroups($('#lat_chart'),['p50','p95','p99'],[
+    {name:'PyTorch',color:'#94a3b8',vals:['p50','p95','p99'].map(k=>m.pytorch[k])},
+    {name:'ONNX',color:'#3b82f6',vals:['p50','p95','p99'].map(k=>m.onnx[k])},
+    {name:'ONNX int8',color:'#22c55e',vals:['p50','p95','p99'].map(k=>m.onnx_int8[k])}],{fmt:v=>v.toFixed(2),h:220});
+}
+async function drawSweep(){ const sw=await j('/api/sweep');
+  $('#sweep_sub').textContent = sw.status==='done'?'완료 · 시드평균 best':(sw.status==='running'?`진행중 (${sw.n}런 누적) · 부분 best`:'대기중(곧 결과)');
+  if(!sw.rows||!sw.rows.length){$('#sweep_table').innerHTML='<div class="dim sm">그리드서치 진행 중…</div>';return;}
+  const byfd={}; sw.rows.forEach(r=>{const k=r.fd; if(!byfd[k]||r.test_rmse<byfd[k].test_rmse)byfd[k]=r;});
+  let html='<table><tr><th>FD</th><th>모델</th><th>윈도</th><th>lr</th><th>test RMSE</th><th>±</th></tr>';
+  ['FD001','FD002','FD003','FD004'].forEach(fd=>{const r=byfd[fd]; if(r)html+=`<tr><td>${fd}</td><td>${r.model}</td><td>${r.window||'-'}</td><td>${r.lr??'-'}</td><td>${(r.test_rmse).toFixed?r.test_rmse.toFixed(2):r.test_rmse}</td><td class="dim">${r.test_rmse_std?'±'+Number(r.test_rmse_std).toFixed(2):''}</td></tr>`;});
+  $('#sweep_table').innerHTML=html+'</table>';
+}
+
 let RUNS=[];
 async function init(){
   const lb=(await j('/api/leaderboard')).rows;
@@ -99,6 +137,7 @@ async function init(){
   syncModels(); $('#sel_fd').onchange=()=>{syncModels();loadEngineList();};
   $('#sel_model').onchange=refresh; $('#sel_engine').onchange=drawEngine;
   await loadEngineList();
+  drawSweep();
 }
 function syncModels(){ const fd=$('#sel_fd').value;
   const ms=RUNS.filter(r=>r.fd===fd&&r.test).map(r=>r.model);
@@ -107,7 +146,7 @@ async function loadEngineList(){ const fd=$('#sel_fd').value;
   const es=(await j('/api/engines?fd='+fd)).engines.sort((a,b)=>a.true_rul-b.true_rul);
   $('#sel_engine').innerHTML=es.map(e=>`<option value="${e.unit}">엔진 ${e.unit} (실제RUL ${e.true_rul})</option>`).join('');
   refresh(); }
-async function refresh(){ await drawEngine(); await drawHist(); await drawPred(); }
+async function refresh(){ await drawEngine(); await drawHist(); await drawPred(); drawXai(); drawDrift(); drawLatency(); }
 
 async function drawEngine(){ const fd=$('#sel_fd').value,m=$('#sel_model').value,u=$('#sel_engine').value;
   if(!u)return; const d=await j(`/api/engine?fd=${fd}&model=${m}&unit=${u}`);

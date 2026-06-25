@@ -56,6 +56,28 @@
     </div>
   </div>
 
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><b>XAI — 센서 기여도</b><span class="sub">Integrated Gradients · RUL 예측을 끌어내리는 센서</span></div>
+      <div id="xai_chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><b>드리프트 모니터</b><span class="sub" id="drift_sub">센서 분포 PSI (train↔test) · 빨강=경보(>0.25)</span></div>
+      <div id="drift_chart"></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><b>배포 지연 (ONNX)</b><span class="sub">CPU bs1 p50/p95/p99 ms · PyTorch vs ONNX vs int8</span></div>
+      <div id="lat_chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><b>그리드서치 리더보드</b><span class="sub" id="sweep_sub">시드 평균 · FD별 best</span></div>
+      <div id="sweep_table"></div>
+    </div>
+  </div>
+
   <div class="card">
     <div class="card-h"><b>전체 결과 표</b><span class="sub">val(무누수) · test 지표</span></div>
     <div id="table"></div>

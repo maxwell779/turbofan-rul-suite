@@ -49,6 +49,47 @@ def api_runs():
     return {"runs": runs()}
 
 
+def _json(path):
+    return json.load(open(path, encoding="utf-8")) if path.exists() else None
+
+
+@app.get("/api/eda")
+def api_eda():
+    return _json(EXP / "eda" / "summary.json") or {}
+
+
+@app.get("/api/drift")
+def api_drift(fd: str = "FD001"):
+    return _json(EXP / "mlops" / f"drift_{fd}.json") or {}
+
+
+@app.get("/api/xai")
+def api_xai(fd: str = "FD001", model: str = "tcn"):
+    return _json(EXP / "mlops" / f"xai_{fd}_{model}.json") or {}
+
+
+@app.get("/api/latency")
+def api_latency(fd: str = "FD001", model: str = "tcn"):
+    return _json(EXP / "mlops" / f"latency_{fd}_{model}.json") or {}
+
+
+@app.get("/api/sweep")
+def api_sweep():
+    """sweep 리더보드(완료 시 leaderboard.csv, 진행중이면 shard 부분합)."""
+    import glob
+    lb = EXP / "sweep" / "leaderboard.csv"
+    if lb.exists():
+        df = pd.read_csv(lb)
+        return {"status": "done", "rows": df.head(120).to_dict("records")}
+    shards = glob.glob(str(EXP / "sweep" / "lb_shard*.csv"))
+    if not shards:
+        return {"status": "pending", "rows": []}
+    df = pd.concat([pd.read_csv(s) for s in shards], ignore_index=True)
+    g = (df.sort_values("test_rmse").groupby("fd").head(15)
+         if len(df) else df)
+    return {"status": "running", "n": int(len(df)), "rows": g.round(3).to_dict("records")}
+
+
 @app.get("/api/history")
 def history(fd: str, model: str):
     f = EXP / f"{fd}_{model}" / "history.json"
