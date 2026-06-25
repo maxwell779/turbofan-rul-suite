@@ -72,10 +72,20 @@ def get_data(fd, window):
     return _CACHE[key]
 
 
+def _predict(net, X, bs=256):
+    """배치 추론 — PatchTST는 채널독립으로 유효배치=bs×F라 전체 일괄통과 시 CUDA 한계 초과."""
+    out = []
+    with torch.no_grad():
+        for i in range(0, len(X), bs):
+            xb = torch.tensor(X[i:i + bs]).to(DEV)
+            out.append(net(xb).cpu().numpy())
+    return np.concatenate(out)
+
+
 def run_dl(cfg, d, epochs, patience=10, batch=512):
     torch.manual_seed(cfg["seed"]); np.random.seed(cfg["seed"])
-    tl = DataLoader(TensorDataset(torch.tensor(d["Xtr"]), torch.tensor(d["ytr"])), batch_size=batch, shuffle=True)
-    Xva = torch.tensor(d["Xva"]).to(DEV)
+    bs = 128 if cfg["model"] == "patchtst" else batch
+    tl = DataLoader(TensorDataset(torch.tensor(d["Xtr"]), torch.tensor(d["ytr"])), batch_size=bs, shuffle=True)
     net = build(cfg["model"], d["n_feat"], d["window"], **cfg["hp"]).to(DEV)
     opt = torch.optim.Adam(net.parameters(), lr=cfg.get("lr", 1e-3), weight_decay=1e-4)
     sch = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, factor=0.5, patience=4)
@@ -86,16 +96,13 @@ def run_dl(cfg, d, epochs, patience=10, batch=512):
             xb, yb = xb.to(DEV), yb.to(DEV)
             opt.zero_grad(); lf(net(xb), yb).backward(); opt.step()
         net.eval()
-        with torch.no_grad():
-            r = both(net(Xva).cpu().numpy(), d["yva"])["rmse"]
+        r = both(_predict(net, d["Xva"]), d["yva"])["rmse"]
         sch.step(r)
         if r < best - 1e-4: best, bstate, wait = r, {k: v.cpu().clone() for k, v in net.state_dict().items()}, 0
         else: wait += 1
         if wait >= patience: break
     net.load_state_dict(bstate); net.eval()
-    with torch.no_grad():
-        pred = np.clip(net(torch.tensor(d["Xte"]).to(DEV)).cpu().numpy(), 0, None)
-    tm = both(pred, d["yte"])
+    tm = both(np.clip(_predict(net, d["Xte"]), 0, None), d["yte"])
     return best, tm
 
 
@@ -134,6 +141,7 @@ def main():
     ap.add_argument("--seeds", default="42,7"); ap.add_argument("--windows", default="30,40,50")
     ap.add_argument("--lrs", default="1e-3,5e-4")
     ap.add_argument("--epochs", type=int, default=60); ap.add_argument("--quick", action="store_true"); ap.add_argument("--merge", action="store_true")
+    ap.add_argument("--resume", action="store_true")
     a = ap.parse_args()
     if a.merge: merge(); return
     fds = [a.fd] if a.fd else SUBSETS
@@ -142,6 +150,16 @@ def main():
     epochs = 20 if a.quick else a.epochs
     cfgs = gen_configs(fds, seeds, windows, lrs)
     mine = cfgs[a.shard::a.of]
+    if a.resume:
+        raw = SWEEP / "raw_all.csv"
+        done = set()
+        if raw.exists():
+            r = pd.read_csv(raw)
+            for _, x in r.iterrows():
+                done.add((x["fd"], x["model"], str(x["loss"]), int(x["window"]), float(x["lr"]), str(x["hp"]), int(x["seed"])))
+        def key(c): return (c["fd"], c["model"], str(c["loss"]), int(c["window"]), float(c["lr"]), hp_tag(c["hp"]), int(c["seed"]))
+        before = len(mine); mine = [c for c in mine if key(c) not in done]
+        print(f"[shard {a.shard}] resume: {before}→{len(mine)} (완료 {before-len(mine)} 건너뜀)", flush=True)
     out = SWEEP / f"lb_shard{a.shard}.csv"; rows = []
     # ML은 shard 0에서만(빠름)
     if a.shard == 0:
