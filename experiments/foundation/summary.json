@@ -1,0 +1,90 @@
+{
+  "FD001": {
+    "full_ridge": {
+      "n_labels": 3000,
+      "rmse": 23.177,
+      "nasa": 1997.3
+    },
+    "full_svr": {
+      "n_labels": 3000,
+      "rmse": 36.054,
+      "nasa": 11419.1
+    },
+    "fewshot10_ridge": {
+      "n_labels": 300,
+      "rmse": 34.258,
+      "nasa": 7695.4
+    },
+    "fewshot10_svr": {
+      "n_labels": 300,
+      "rmse": 44.538,
+      "nasa": 67121.2
+    }
+  },
+  "FD002": {
+    "full_ridge": {
+      "n_labels": 3000,
+      "rmse": 32.355,
+      "nasa": 59988.3
+    },
+    "full_svr": {
+      "n_labels": 3000,
+      "rmse": 38.383,
+      "nasa": 22482.5
+    },
+    "fewshot10_ridge": {
+      "n_labels": 300,
+      "rmse": 37.541,
+      "nasa": 18992.0
+    },
+    "fewshot10_svr": {
+      "n_labels": 300,
+      "rmse": 43.551,
+      "nasa": 75678.1
+    }
+  },
+  "FD003": {
+    "full_ridge": {
+      "n_labels": 3000,
+      "rmse": 22.655,
+      "nasa": 1487.4
+    },
+    "full_svr": {
+      "n_labels": 3000,
+      "rmse": 27.715,
+      "nasa": 4876.5
+    },
+    "fewshot10_ridge": {
+      "n_labels": 300,
+      "rmse": 25.756,
+      "nasa": 2444.2
+    },
+    "fewshot10_svr": {
+      "n_labels": 300,
+      "rmse": 44.332,
+      "nasa": 59798.4
+    }
+  },
+  "FD004": {
+    "full_ridge": {
+      "n_labels": 3000,
+      "rmse": 33.042,
+      "nasa": 23211.5
+    },
+    "full_svr": {
+      "n_labels": 3000,
+      "rmse": 39.144,
+      "nasa": 61771.0
+    },
+    "fewshot10_ridge": {
+      "n_labels": 300,
+      "rmse": 36.919,
+      "nasa": 25173.6
+    },
+    "fewshot10_svr": {
+      "n_labels": 300,
+      "rmse": 44.796,
+      "nasa": 141847.5
+    }
+  }
+}

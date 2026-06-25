@@ -1,0 +1,28 @@
+{
+  "fd": "FD004",
+  "backbone": "MOMENT-1-small(frozen)",
+  "emb_dim": 512,
+  "n_train_emb": 3000,
+  "results": {
+    "full_ridge": {
+      "n_labels": 3000,
+      "rmse": 33.042,
+      "nasa": 23211.5
+    },
+    "full_svr": {
+      "n_labels": 3000,
+      "rmse": 39.144,
+      "nasa": 61771.0
+    },
+    "fewshot10_ridge": {
+      "n_labels": 300,
+      "rmse": 36.919,
+      "nasa": 25173.6
+    },
+    "fewshot10_svr": {
+      "n_labels": 300,
+      "rmse": 44.796,
+      "nasa": 141847.5
+    }
+  }
+}
