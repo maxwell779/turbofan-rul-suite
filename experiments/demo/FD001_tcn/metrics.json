@@ -1,0 +1,13 @@
+{
+  "fd": "FD001",
+  "model": "tcn",
+  "hp": {
+    "ch": 64,
+    "levels": 4,
+    "p": 0.2
+  },
+  "loss": "mse",
+  "val_rmse": 14.588,
+  "test_rmse": 14.726,
+  "nasa": 322.9
+}

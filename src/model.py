@@ -105,8 +105,49 @@ class DLinear(nn.Module):
         return self.head(t + s).squeeze(-1)
 
 
+class RevIN(nn.Module):
+    """Reversible Instance Norm — 윈도별(인스턴스) 평균/분산 정규화 + 학습 affine.
+    RUL 회귀는 출력이 스칼라라 denorm 불필요 → 입력 분포shift 완화용 정규화로 사용.
+    출처: Kim et al. ICLR2022."""
+    def __init__(self, n_feat, eps=1e-5):
+        super().__init__()
+        self.eps = eps
+        self.gamma = nn.Parameter(torch.ones(n_feat)); self.beta = nn.Parameter(torch.zeros(n_feat))
+
+    def forward(self, x):                       # x: (B,W,F)
+        mu = x.mean(1, keepdim=True); sd = torch.sqrt(x.var(1, keepdim=True, unbiased=False) + self.eps)
+        return (x - mu) / sd * self.gamma + self.beta
+
+
+class PatchTST(nn.Module):
+    """PatchTST식: patching + 채널독립 Transformer 인코더 → 회귀헤드. (+RevIN 옵션)
+    출처: Nie et al. ICLR2023. 고정윈도→스칼라 RUL로 적응(decoder 대신 회귀헤드)."""
+    def __init__(self, n_feat, window, patch=10, stride=5, d_model=64, nhead=4, layers=3, p=0.2, revin=True):
+        super().__init__()
+        self.F = n_feat; self.patch = patch; self.stride = stride
+        self.revin = RevIN(n_feat) if revin else None
+        self.npatch = (window - patch) // stride + 1
+        self.embed = nn.Linear(patch, d_model)
+        self.pos = nn.Parameter(torch.randn(1, self.npatch, d_model) * 0.02)
+        enc = nn.TransformerEncoderLayer(d_model, nhead, d_model * 2, p, batch_first=True, activation="gelu")
+        self.tr = nn.TransformerEncoder(enc, layers)
+        self.head = nn.Sequential(nn.Flatten(), nn.Dropout(p), nn.Linear(n_feat * d_model, 128), nn.GELU(),
+                                  nn.Dropout(p), nn.Linear(128, 1))
+
+    def forward(self, x):                       # x: (B,W,F)
+        if self.revin is not None: x = self.revin(x)
+        B = x.size(0)
+        xc = x.transpose(1, 2)                  # (B,F,W)
+        patches = xc.unfold(2, self.patch, self.stride)   # (B,F,npatch,patch)
+        z = self.embed(patches) + self.pos.unsqueeze(1)   # (B,F,npatch,d)
+        z = z.reshape(B * self.F, self.npatch, -1)
+        z = self.tr(z).mean(1)                  # (B*F, d)
+        z = z.reshape(B, self.F, -1)            # (B,F,d)
+        return self.head(z).squeeze(-1)
+
+
 _REG = {"cnn": CNN1D, "lstm": LSTMReg, "gru": GRUReg, "bilstm": BiLSTM,
-        "cnnlstm": CNNLSTM, "tcn": TCN, "dlinear": DLinear}
+        "cnnlstm": CNNLSTM, "tcn": TCN, "dlinear": DLinear, "patchtst": PatchTST}
 
 
 def build(name, n_feat, window, **hp):

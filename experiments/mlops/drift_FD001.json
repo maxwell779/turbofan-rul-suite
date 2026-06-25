@@ -1,0 +1,116 @@
+{
+  "fd": "FD001",
+  "n_sensors": 14,
+  "dataset_drift": true,
+  "drift_share": 0.571,
+  "alert_sensors": [
+    "s11",
+    "s4",
+    "s12",
+    "s7",
+    "s15",
+    "s21",
+    "s20",
+    "s2"
+  ],
+  "sensors": [
+    {
+      "sensor": "s11",
+      "psi": 0.3476,
+      "ks_stat": 0.2108,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s4",
+      "psi": 0.3474,
+      "ks_stat": 0.2106,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s12",
+      "psi": 0.3094,
+      "ks_stat": 0.1994,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s7",
+      "psi": 0.2927,
+      "ks_stat": 0.1948,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s15",
+      "psi": 0.2912,
+      "ks_stat": 0.1942,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s21",
+      "psi": 0.282,
+      "ks_stat": 0.1934,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s20",
+      "psi": 0.2717,
+      "ks_stat": 0.1847,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s2",
+      "psi": 0.2502,
+      "ks_stat": 0.1794,
+      "ks_p": 0.0,
+      "level": "alert"
+    },
+    {
+      "sensor": "s17",
+      "psi": 0.2292,
+      "ks_stat": 0.1811,
+      "ks_p": 0.0,
+      "level": "watch"
+    },
+    {
+      "sensor": "s3",
+      "psi": 0.2218,
+      "ks_stat": 0.1678,
+      "ks_p": 0.0,
+      "level": "watch"
+    },
+    {
+      "sensor": "s9",
+      "psi": 0.2025,
+      "ks_stat": 0.1353,
+      "ks_p": 0.0,
+      "level": "watch"
+    },
+    {
+      "sensor": "s14",
+      "psi": 0.1922,
+      "ks_stat": 0.1156,
+      "ks_p": 0.0,
+      "level": "watch"
+    },
+    {
+      "sensor": "s13",
+      "psi": 0.1801,
+      "ks_stat": 0.1564,
+      "ks_p": 0.0,
+      "level": "watch"
+    },
+    {
+      "sensor": "s8",
+      "psi": 0.1754,
+      "ks_stat": 0.1563,
+      "ks_p": 0.0,
+      "level": "watch"
+    }
+  ]
+}
