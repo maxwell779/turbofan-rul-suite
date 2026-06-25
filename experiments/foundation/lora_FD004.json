@@ -1,18 +1,18 @@
 {
-  "fd": "FD001",
+  "fd": "FD004",
   "backbone": "MOMENT-1-small + LoRA(r8)",
   "results": {
     "full": {
       "n_labels": 4000,
-      "rmse": 21.768,
-      "nasa": 1259.4,
+      "rmse": 29.193,
+      "nasa": 17026.4,
       "trainable_params": 180481,
       "total_params": 35517889
     },
     "fewshot10": {
       "n_labels": 400,
-      "rmse": 41.552,
-      "nasa": 29294.3,
+      "rmse": 44.733,
+      "nasa": 128061.3,
       "trainable_params": 180481,
       "total_params": 35517889
     }
