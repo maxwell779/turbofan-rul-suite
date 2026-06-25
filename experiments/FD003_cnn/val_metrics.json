@@ -1,0 +1,11 @@
+{
+  "fd": "FD003",
+  "model": "cnn",
+  "epoch": 21,
+  "rmse": 14.674327850341797,
+  "nasa_score": 25797.551871586315,
+  "n_feat": 18,
+  "window": 30,
+  "n_units_train": 80,
+  "n_units_val": 20
+}

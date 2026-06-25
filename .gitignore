@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+data/*.txt
+experiments/**/*.pt
+experiments/**/scaler.npz
+*.log
+scripts/_*.sh
+web/ui/node_modules/
+.DS_Store

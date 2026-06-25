@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PdM-RUL Console · NASA C-MAPSS</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" />
+<link href="/static/style.css" rel="stylesheet" />
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">RUL</div>
+    <div>
+      <div class="t1">예지보전 RUL Console <span class="muted">PREDICTIVE MAINTENANCE</span></div>
+      <div class="t2">NASA C-MAPSS 터보팬 · 잔여수명(RUL) 예측 · 무누수 엔진단위 검증</div>
+    </div>
+  </div>
+  <div class="status" id="status">로딩…</div>
+</div>
+
+<main class="main">
+  <section class="kpis" id="kpis"></section>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><b>리더보드</b><span class="sub">테스트 RMSE — 낮을수록 좋음 (FD×모델)</span></div>
+      <div id="lb_rmse"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><b>NASA 안전 점수</b><span class="sub">늦은 예측(고장 임박 놓침)에 더 큰 벌점 — 낮을수록 안전</span></div>
+      <div id="lb_nasa"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <b>엔진 RUL 뷰어</b><span class="sub">사이클이 진행될수록 예측 RUL이 실제 고장 시점으로 수렴</span>
+      <span class="ctrls">
+        <select id="sel_fd"></select><select id="sel_model"></select><select id="sel_engine"></select>
+      </span>
+    </div>
+    <div id="engine_chart"></div>
+    <div id="sensor_charts" class="sensors"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><b>학습 곡선</b><span class="sub" id="hist_sub">검증 RMSE / 에폭 (무누수 val)</span></div>
+      <div id="hist_chart"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><b>예측 vs 실제 RUL</b><span class="sub" id="pred_sub">test 엔진별 (점선 = 이상선 y=x)</span></div>
+      <div id="pred_chart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h"><b>전체 결과 표</b><span class="sub">val(무누수) · test 지표</span></div>
+    <div id="table"></div>
+  </div>
+</main>
+<footer class="foot">PdM-RUL Console · NASA C-MAPSS · 1D-CNN / LSTM · 엔진단위 무누수 검증 · RMSE + NASA score</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

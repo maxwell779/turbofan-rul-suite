@@ -1,0 +1,11 @@
+{
+  "fd": "FD001",
+  "model": "lstm",
+  "epoch": 28,
+  "rmse": 13.504794120788574,
+  "nasa_score": 12620.326047001012,
+  "n_feat": 17,
+  "window": 30,
+  "n_units_train": 80,
+  "n_units_val": 20
+}
