@@ -1,0 +1,13 @@
+{
+  "fd": "FD001",
+  "backbone": "MOMENT-1-small + LoRA(r8)",
+  "results": {
+    "full": {
+      "n_labels": 256,
+      "rmse": 77.943,
+      "nasa": 189790.7,
+      "trainable_params": 180481,
+      "total_params": 35517889
+    }
+  }
+}
