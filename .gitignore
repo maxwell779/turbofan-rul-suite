@@ -8,3 +8,7 @@ scripts/_*.sh
 web/ui/node_modules/
 .DS_Store
 *.onnx
+.claude/
+# sweep resume 중간 스냅샷(작업 잔여물) — 최종 lb_shard*.csv/raw_all.csv/leaderboard.csv만 보관
+experiments/sweep/*_prev.csv
+experiments/sweep/*_r1.csv

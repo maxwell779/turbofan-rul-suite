@@ -149,7 +149,6 @@ def main():
     lrs = [float(x) for x in a.lrs.split(",")]
     epochs = 20 if a.quick else a.epochs
     cfgs = gen_configs(fds, seeds, windows, lrs)
-    mine = cfgs[a.shard::a.of]
     if a.resume:
         raw = SWEEP / "raw_all.csv"
         done = set()
@@ -158,8 +157,9 @@ def main():
             for _, x in r.iterrows():
                 done.add((x["fd"], x["model"], str(x["loss"]), int(x["window"]), float(x["lr"]), str(x["hp"]), int(x["seed"])))
         def key(c): return (c["fd"], c["model"], str(c["loss"]), int(c["window"]), float(c["lr"]), hp_tag(c["hp"]), int(c["seed"]))
-        before = len(mine); mine = [c for c in mine if key(c) not in done]
-        print(f"[shard {a.shard}] resume: {before}→{len(mine)} (완료 {before-len(mine)} 건너뜀)", flush=True)
+        before = len(cfgs); cfgs = [c for c in cfgs if key(c) not in done]   # 먼저 전역 잔여만 남기고
+        print(f"[shard {a.shard}] resume 전역잔여: {before}→{len(cfgs)} (완료 {before-len(cfgs)} 제외)", flush=True)
+    mine = cfgs[a.shard::a.of]   # 그 다음 6워커 균등 샤딩
     out = SWEEP / f"lb_shard{a.shard}.csv"; rows = []
     # ML은 shard 0에서만(빠름)
     if a.shard == 0:

@@ -1,5 +1,5 @@
 {
-  "fd": "FD001",
+  "fd": "FD004",
   "model": "tcn",
   "hp": {
     "ch": 64,
@@ -7,7 +7,7 @@
     "p": 0.2
   },
   "loss": "mse",
-  "val_rmse": 15.348,
-  "test_rmse": 15.763,
-  "nasa": 473.2
+  "val_rmse": 16.681,
+  "test_rmse": 15.257,
+  "nasa": 1337.7
 }

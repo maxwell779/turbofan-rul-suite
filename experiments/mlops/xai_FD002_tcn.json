@@ -1,0 +1,121 @@
+{
+  "fd": "FD002",
+  "model": "tcn",
+  "window": 40,
+  "n_samples": 80,
+  "method": "IntegratedGradients(n_steps=48, baseline=0)",
+  "sensor_importance": [
+    {
+      "sensor": "s11",
+      "importance": 0.86442,
+      "signed": -0.23913
+    },
+    {
+      "sensor": "s15",
+      "importance": 0.72087,
+      "signed": -0.23161
+    },
+    {
+      "sensor": "s4",
+      "importance": 0.62984,
+      "signed": -0.0281
+    },
+    {
+      "sensor": "s17",
+      "importance": 0.59286,
+      "signed": -0.05491
+    },
+    {
+      "sensor": "s21",
+      "importance": 0.53567,
+      "signed": 0.23511
+    },
+    {
+      "sensor": "s2",
+      "importance": 0.52024,
+      "signed": 0.18766
+    },
+    {
+      "sensor": "s3",
+      "importance": 0.47259,
+      "signed": 0.22098
+    },
+    {
+      "sensor": "s7",
+      "importance": 0.46213,
+      "signed": 0.01595
+    },
+    {
+      "sensor": "s12",
+      "importance": 0.45942,
+      "signed": 0.15717
+    },
+    {
+      "sensor": "s20",
+      "importance": 0.42194,
+      "signed": 0.1088
+    },
+    {
+      "sensor": "s9",
+      "importance": 0.39629,
+      "signed": 0.06277
+    },
+    {
+      "sensor": "s14",
+      "importance": 0.35684,
+      "signed": 0.10521
+    },
+    {
+      "sensor": "s8",
+      "importance": 0.33606,
+      "signed": -0.06203
+    },
+    {
+      "sensor": "s13",
+      "importance": 0.33136,
+      "signed": -0.04701
+    }
+  ],
+  "time_saliency": [
+    0.46419,
+    0.51188,
+    0.43333,
+    0.5187,
+    0.42957,
+    0.49877,
+    0.4203,
+    0.51625,
+    0.45727,
+    0.50479,
+    0.41843,
+    0.50923,
+    0.41075,
+    0.50614,
+    0.45492,
+    0.49348,
+    0.46288,
+    0.49269,
+    0.49245,
+    0.51701,
+    0.46965,
+    0.54189,
+    0.47707,
+    0.58559,
+    0.46233,
+    0.47781,
+    0.43558,
+    0.48691,
+    0.43491,
+    0.53638,
+    0.49293,
+    0.58927,
+    0.45806,
+    0.4976,
+    0.49024,
+    0.62676,
+    0.5571,
+    0.71838,
+    0.59124,
+    0.8445
+  ]
+}

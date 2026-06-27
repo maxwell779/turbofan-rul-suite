@@ -1,0 +1,121 @@
+{
+  "fd": "FD004",
+  "model": "tcn",
+  "window": 40,
+  "n_samples": 80,
+  "method": "IntegratedGradients(n_steps=48, baseline=0)",
+  "sensor_importance": [
+    {
+      "sensor": "s15",
+      "importance": 0.70575,
+      "signed": -0.25519
+    },
+    {
+      "sensor": "s11",
+      "importance": 0.69958,
+      "signed": -0.26986
+    },
+    {
+      "sensor": "s14",
+      "importance": 0.54743,
+      "signed": -0.27624
+    },
+    {
+      "sensor": "s9",
+      "importance": 0.4469,
+      "signed": -0.1286
+    },
+    {
+      "sensor": "s4",
+      "importance": 0.37826,
+      "signed": -0.13046
+    },
+    {
+      "sensor": "s8",
+      "importance": 0.37178,
+      "signed": -0.1433
+    },
+    {
+      "sensor": "s21",
+      "importance": 0.36066,
+      "signed": 0.17499
+    },
+    {
+      "sensor": "s12",
+      "importance": 0.3435,
+      "signed": -0.12176
+    },
+    {
+      "sensor": "s7",
+      "importance": 0.33735,
+      "signed": -0.01395
+    },
+    {
+      "sensor": "s3",
+      "importance": 0.32446,
+      "signed": -0.05805
+    },
+    {
+      "sensor": "s17",
+      "importance": 0.31245,
+      "signed": -0.02678
+    },
+    {
+      "sensor": "s20",
+      "importance": 0.26351,
+      "signed": 0.14892
+    },
+    {
+      "sensor": "s2",
+      "importance": 0.25969,
+      "signed": 0.00367
+    },
+    {
+      "sensor": "s13",
+      "importance": 0.25502,
+      "signed": -0.02613
+    }
+  ],
+  "time_saliency": [
+    0.20269,
+    0.25269,
+    0.22121,
+    0.31351,
+    0.25272,
+    0.33848,
+    0.23838,
+    0.31546,
+    0.23042,
+    0.29628,
+    0.24577,
+    0.32689,
+    0.2763,
+    0.3127,
+    0.26041,
+    0.31216,
+    0.27105,
+    0.31019,
+    0.28989,
+    0.37201,
+    0.30074,
+    0.37604,
+    0.3577,
+    0.41448,
+    0.31664,
+    0.3881,
+    0.35335,
+    0.46054,
+    0.37018,
+    0.51423,
+    0.45437,
+    0.63193,
+    0.45374,
+    0.60036,
+    0.53749,
+    0.74744,
+    0.59931,
+    0.87465,
+    0.61758,
+    1.01004
+  ]
+}

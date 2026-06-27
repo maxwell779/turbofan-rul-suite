@@ -1,0 +1,10 @@
+services:
+  console:
+    build: .
+    ports:
+      - "8020:8020"
+    volumes:
+      - ./experiments:/app/experiments:ro
+      - ./data:/app/data:ro
+    environment:
+      - CUDA_VISIBLE_DEVICES=

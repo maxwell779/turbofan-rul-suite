@@ -1,0 +1,97 @@
+{
+  "fd": "FD003",
+  "model": "tcn",
+  "n_test": 100,
+  "overall": {
+    "rmse": 15.95,
+    "nasa_score": 724.3
+  },
+  "by_rul_bucket": [
+    {
+      "range": "임박(0-25)",
+      "n": 15,
+      "rmse": 3.5,
+      "mean_signed_err": 0.54
+    },
+    {
+      "range": "중간(25-75)",
+      "n": 34,
+      "rmse": 20.46,
+      "mean_signed_err": 10.64
+    },
+    {
+      "range": "건강(75+)",
+      "n": 51,
+      "rmse": 14.71,
+      "mean_signed_err": -0.17
+    }
+  ],
+  "safety": {
+    "late_predictions(위험)": 52,
+    "early_predictions(보수)": 48,
+    "late_ratio": 0.52,
+    "mean_signed_err": 3.61
+  },
+  "worst_engines": [
+    {
+      "unit": 16,
+      "true": 56.0,
+      "pred": 112.6,
+      "err": 56.6
+    },
+    {
+      "unit": 89,
+      "true": 41.0,
+      "pred": 81.4,
+      "err": 40.4
+    },
+    {
+      "unit": 85,
+      "true": 56.0,
+      "pred": 94.7,
+      "err": 38.7
+    },
+    {
+      "unit": 96,
+      "true": 113.0,
+      "pred": 76.0,
+      "err": -37.0
+    },
+    {
+      "unit": 2,
+      "true": 51.0,
+      "pred": 86.4,
+      "err": 35.4
+    },
+    {
+      "unit": 27,
+      "true": 88.0,
+      "pred": 120.8,
+      "err": 32.8
+    },
+    {
+      "unit": 93,
+      "true": 67.0,
+      "pred": 98.7,
+      "err": 31.7
+    },
+    {
+      "unit": 51,
+      "true": 78.0,
+      "pred": 109.4,
+      "err": 31.4
+    },
+    {
+      "unit": 70,
+      "true": 63.0,
+      "pred": 93.6,
+      "err": 30.6
+    },
+    {
+      "unit": 62,
+      "true": 58.0,
+      "pred": 86.7,
+      "err": 28.7
+    }
+  ]
+}

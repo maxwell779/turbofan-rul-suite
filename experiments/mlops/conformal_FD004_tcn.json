@@ -1,0 +1,11 @@
+{
+  "fd": "FD004",
+  "model": "tcn",
+  "alpha": 0.1,
+  "target_coverage": 0.9,
+  "empirical_coverage": 0.887,
+  "interval_halfwidth_q": 25.27,
+  "mean_width": 50.54,
+  "n_cal": 10420,
+  "n_test": 248
+}

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.log
+.git/
+web/ui/node_modules/
+experiments/sweep/lb_shard*

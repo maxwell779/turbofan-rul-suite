@@ -114,52 +114,84 @@ def engines(fd: str):
 
 
 def _load_model(fd, model):
+    """demo/best 번들(신 코드 bundle.pkl) 로드. 없으면 None."""
+    import pickle
     key = (fd, model)
     if key in _cache:
         return _cache[key]
-    d = EXP / f"{fd}_{model}"
-    sc = np.load(d / "scaler.npz", allow_pickle=True)
-    cols = list(sc["cols"]); mu = sc["mu"]; sd = sc["sd"]
-    net = build(model, len(cols), WINDOW)
+    d = EXP / "demo" / f"{fd}_{model}"
+    if not (d / "bundle.pkl").exists():
+        return None
+    b = pickle.load(open(d / "bundle.pkl", "rb"))
+    net = build(b["model"], b["n_feat"], b["window"], **b["hp"])
     net.load_state_dict(torch.load(d / "best.pt", map_location="cpu")); net.eval()
-    _cache[key] = (net, cols, mu, sd)
+    _cache[key] = (net, b)
     return _cache[key]
 
 
 @app.get("/api/engine")
 def engine(fd: str, model: str, unit: int):
-    """한 test 엔진의 사이클별 RUL 예측 + 주요 센서 곡선."""
-    net, cols, mu, sd = _load_model(fd, model)
+    """한 test 엔진의 사이클별 RUL 예측 + 주요 센서 곡선 (신 코드 번들·조건정규화)."""
+    loaded = _load_model(fd, model)
+    if loaded is None:
+        return JSONResponse({"error": "model not available", "hint": "demo/best 모델 필요"}, status_code=404)
+    net, b = loaded
+    bundle, W, cols = b["bundle"], b["window"], b["cols"]
     df = D._read(DATA / f"test_{fd}.txt")
     truth = pd.read_csv(DATA / f"RUL_{fd}.txt", header=None).iloc[:, 0].values
     us = sorted(df["unit"].unique().tolist())
-    true_end = float(truth[us.index(unit)])
+    true_end = float(min(truth[us.index(unit)], 125))
     g = df[df["unit"] == unit].sort_values("cycle")
-    arr = ((g[cols].values - mu) / sd).astype(np.float32)
-    n = len(arr)
-    pad = arr
-    if n < WINDOW:
-        pad = np.concatenate([np.repeat(arr[:1], WINDOW - n, 0), arr], 0)
-    wins = [pad[max(0, i - WINDOW + 1):i + 1] for i in range(len(pad))]
-    wins = [w if len(w) == WINDOW else np.concatenate([np.repeat(w[:1], WINDOW - len(w), 0), w], 0) for w in wins]
+    gz, zc = D.apply_transform(g, bundle)
+    arr = gz[zc].values.astype(np.float32); n = len(arr)
+    pad = arr if n >= W else np.concatenate([np.repeat(arr[:1], W - n, 0), arr], 0)
+    wins = [pad[max(0, i - W + 1):i + 1] for i in range(len(pad))]
+    wins = [w if len(w) == W else np.concatenate([np.repeat(w[:1], W - len(w), 0), w], 0) for w in wins]
     with torch.no_grad():
-        pr = net(torch.tensor(np.stack(wins[-n:]))).numpy()
-    pr = np.clip(pr, 0, None)
+        pr = np.clip(net(torch.tensor(np.stack(wins[-n:]))).numpy(), 0, None)
     cyc = g["cycle"].values.tolist()
-    # 실제 RUL: 마지막 사이클이 true_end, 그 이전은 +1씩 (cap 125)
-    true_line = np.clip(true_end + (np.array(cyc[-1]) - np.array(cyc)), 0, 125).tolist()
-    # 대표 센서 4종(분산 큰 것)
-    key_sensors = ["s2", "s3", "s4", "s11"]
-    key_sensors = [s for s in key_sensors if s in g.columns][:4]
+    true_line = np.clip(true_end + (cyc[-1] - np.array(cyc)), 0, 125).tolist()
+    key_sensors = [s for s in ("s2", "s3", "s4", "s11") if s in g.columns][:4]
     sensors = {s: g[s].round(3).tolist() for s in key_sensors}
     return {"unit": unit, "cycle": cyc, "pred_rul": pr.round(2).tolist(),
-            "true_rul": [round(x, 1) for x in true_line], "true_end": true_end,
-            "sensors": sensors}
+            "true_rul": [round(x, 1) for x in true_line], "true_end": true_end, "sensors": sensors}
+
+
+@app.get("/api/conformal")
+def api_conformal(fd: str = "FD001", model: str = "tcn"):
+    return _json(EXP / "mlops" / f"conformal_{fd}_{model}.json") or {}
+
+
+@app.get("/api/error")
+def api_error(fd: str = "FD001", model: str = "tcn"):
+    return _json(EXP / "analysis" / f"error_{fd}_{model}.json") or {}
+
+
+@app.get("/api/foundation")
+def api_foundation():
+    return {"frozen": _json(EXP / "foundation" / "summary.json") or {},
+            "lora": _json(EXP / "foundation" / "lora_summary.json") or {}}
+
+
+@app.get("/api/demo_models")
+def api_demo_models():
+    """오차분석·conformal·XAI·지연이 있는 demo/best 모델 목록."""
+    out = []
+    for d in sorted((EXP / "demo").glob("*_*")):
+        out.append(d.name)
+    return {"models": out}
+
+
+_UI = HERE / "ui" / "dist"
 
 
 @app.get("/")
 def index():
+    if (_UI / "index.html").exists():
+        return FileResponse(_UI / "index.html")
     return FileResponse(HERE / "static" / "index.html")
 
 
+if (_UI / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=_UI / "assets"), name="assets")
 app.mount("/static", StaticFiles(directory=HERE / "static"), name="static")
