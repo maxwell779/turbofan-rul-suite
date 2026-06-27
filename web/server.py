@@ -80,7 +80,11 @@ def api_sweep():
     lb = EXP / "sweep" / "leaderboard.csv"
     if lb.exists():
         df = pd.read_csv(lb)
-        return {"status": "done", "rows": df.head(120).to_dict("records")}
+        # 모델 선택은 무누수 val 기준 → (fd,model)별 val_rmse 최소 행만(전 FD·전 모델 커버,
+        # 4736 config 정렬상 head(N)이 FD001만 반환하던 문제 해결)
+        best = (df.sort_values("val_rmse").groupby(["fd", "model"], as_index=False).first()
+                  .sort_values(["fd", "test_rmse"]))
+        return {"status": "done", "rows": best.round(3).to_dict("records")}
     shards = glob.glob(str(EXP / "sweep" / "lb_shard*.csv"))
     if not shards:
         return {"status": "pending", "rows": []}

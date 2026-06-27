@@ -42,7 +42,7 @@ export default function App() {
   const [sweep, setSweep] = useState(null), [runs, setRuns] = useState([]), [found, setFound] = useState(null);
   useEffect(() => { api.sweep().then(setSweep); api.runs().then(d => setRuns(d?.runs || [])); api.foundation().then(setFound); }, []);
   const bestByFd = {};
-  (sweep?.rows || []).forEach(r => { if (!bestByFd[r.fd] || r.test_rmse < bestByFd[r.fd].test_rmse) bestByFd[r.fd] = r; });
+  (sweep?.rows || []).forEach(r => { if (!bestByFd[r.fd] || r.val_rmse < bestByFd[r.fd].val_rmse) bestByFd[r.fd] = r; });  // 무누수 val 기준 best
   return (
     <div className="app">
       <div className="topbar">

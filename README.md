@@ -3,7 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-console-009688?logo=fastapi&logoColor=white)
-![Best RMSE](https://img.shields.io/badge/FD001%20RMSE-13.17-3b82f6)
+![Best RMSE](https://img.shields.io/badge/FD001%20RMSE-11.87-3b82f6)
 ![License](https://img.shields.io/badge/License-MIT-64748b)
 
 터보팬 엔진 센서 시계열로 **잔여수명(RUL, Remaining Useful Life)** 을 예측하는 예지보전(PdM) 프로젝트. 정적 이미지 결함 검사를 넘어 **시간축 고장 예측**으로 확장했고, 산업 안전 관점(고장을 늦게 알수록 치명적)을 평가지표에 반영했다.
@@ -34,14 +34,14 @@
 
 ## 결과 (test)
 
-그리드서치(모델 8종 × 손실 × 윈도 × lr × 시드, 약 9.4k 설정), **모델 선택은 test가 아닌 무누수 val 기준**:
+그리드서치(모델 8종 × 손실 × 윈도{30,50} × lr × 시드, 약 9.5k 런·4.7k 설정), **모델 선택은 test가 아닌 무누수 val 기준**(2시드 평균±std):
 
 | FD | 조건/결함 | best 모델 | val RMSE | **test RMSE** | NASA | 초기 baseline |
 |---|---|---|---|---|---|---|
-| FD001 | 1 / 1 | **PatchTST** | 9.91 | **11.87** | 206 | 13.17 |
-| FD002 | 6 / 1 | GRU(조건정규화) | 12.96 | **12.82** | 768 | 21.67 |
-| FD003 | 1 / 2 | CNN-LSTM | 9.52 | **13.07** | 380 | 15.86 |
-| FD004 | 6 / 2 | BiLSTM(조건정규화) | 14.41 | **13.32** | 913 | 23.63 |
+| FD001 | 1 / 1 | **PatchTST** | 9.91 | **11.87** ±0.05 | 206 | 13.17 |
+| FD002 | 6 / 1 | **PatchTST**(조건정규화) | 12.85 | **12.86** ±0.07 | 677 | 21.67 |
+| FD003 | 1 / 2 | **PatchTST** | 9.65 | **11.73** ±0.09 | 239 | 15.86 |
+| FD004 | 6 / 2 | BiLSTM(조건정규화) | 14.66 | **12.85** ±0.11 | 825 | 23.63 |
 
 ### 파운데이션 (frozen vs LoRA)
 | FD | frozen+Ridge | **LoRA** | LoRA few-shot 10% |
@@ -51,12 +51,13 @@
 | FD003 | 22.66 | **19.08** | 25.59 |
 | FD004 | 33.04 | **29.19** | 44.73 |
 
-- **조건별 정규화가 FD002/004를 살린다**: 21.67→**12.82**, 23.63→**13.32**. KMeans(6) 운전조건별 StandardScaler로 평균이동을 제거해 열화신호가 드러남.
-- **최신 모델 PatchTST가 FD001 1위**(val 9.91): patching + 채널독립 Transformer가 단일조건에서 효과.
+- **조건별 정규화가 FD002/004를 살린다**: 21.67→**12.86**, 23.63→**12.85**. KMeans(6) 운전조건별 StandardScaler로 평균이동을 제거해 열화신호가 드러남.
+- **PatchTST가 FD001·FD002·FD003 1위**(val 9.91/12.85/9.65): patching + 채널독립 Transformer + asym 손실. 단 최난도 **FD004(6조건×2결함)는 BiLSTM(조건정규화)**이 우세 — 채널독립이 다조건 혼재에선 오히려 불리(정직한 trade-off).
+- **DL이 ML 특징기반(Ridge/RF/SVR)을 전 subset에서 명확히 상회**(예 FD003 11.73 vs 17.88), 단 **DLinear 선형 baseline도 견고**(FD003 13.0) → 동일 윈도·정규화·예산 공정비교.
 - **LoRA가 frozen 파운데이션보다 일관 개선**(백본 동결, 어댑터 180K+헤드만 학습)하지만 task-specific(~12-13)엔 미달 → "파운데이션은 C-MAPSS에서 아직 SOTA 아님"이라는 정직한 결론(문헌 일치).
-- 문헌 SOTA(FD001~11, FD002~13, FD004~16)와 동급/이상, 전부 **무누수 val 선택**.
+- 문헌 SOTA(FD001~11, FD002~13, FD004~16)와 **동급~상회**(FD003 11.73·FD004 12.85), 전부 **무누수 val 선택**.
 
-> ⚠️ 1차 그리드서치에서 PatchTST의 val 일괄추론이 CUDA 한계를 넘겨(채널독립 9.8만 배치) 일부 설정이 유실됨 → **배치추론으로 수정 후 유실분 보강 재실행 중**(전 설정 2시드 평균±std 완성 예정). 위 수치는 보강 후 갱신.
+> ✅ 1차 그리드서치에서 PatchTST val 일괄추론이 CUDA 한계를 넘겨(채널독립 9.8만 배치) 유실됐던 설정을 **배치추론(`_predict`)으로 수정·보강 완료** — 위 수치는 전 설정 **2시드 평균±std** 최종본.
 
 ### 신뢰성·안전 분석 (MLOps)
 - **불확실성(Conformal 예측구간)**: 무누수 val을 캘리브레이션으로 분포가정 없이 90% 구간 보장 → 목표 90% 대비 **실측 커버리지 90.0%, ±25 사이클**. PdM에선 점추정이 아니라 "RUL ± 구간"이 정비 의사결정 핵심.
@@ -65,7 +66,7 @@
 - **재현/배포**: `docker compose up` (CPU 콘솔).
 
 ## 한계 / 개선 방향
-- PatchTST 유실분 보강으로 **전 설정 2시드 평균±std** 완성 예정.
+- 현재 시드 2개 평균(일부 3개) → 3~5시드로 늘려 신뢰구간을 더 좁힐 여지.
 - RUL 클립 125 고정(130 비교 여지), 앙상블·conformal 예측구간 후속.
 - 파운데이션: 큰 모델(base/large)·full 파인튜닝·다른 백본(Chronos/TimesFM) 비교 여지.
 
