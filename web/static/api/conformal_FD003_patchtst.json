@@ -1,0 +1,1 @@
+{"fd": "FD003", "model": "patchtst", "alpha": 0.1, "target_coverage": 0.9, "empirical_coverage": 0.82, "interval_halfwidth_q": 19.56, "mean_width": 39.12, "n_cal": 3666, "n_test": 100}
