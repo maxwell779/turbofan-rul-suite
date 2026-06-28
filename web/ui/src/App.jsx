@@ -82,10 +82,10 @@ function EngineViewer() {
   const [engines, setEngines] = useState([]); const [unit, setUnit] = useState(null);
   const [data, setData] = useState(null); const [q, setQ] = useState(null);
   useEffect(() => { api.demoModels().then(d => setDemo((d?.models || []).map(s => ({ fd: s.split('_')[0], model: s.split('_').slice(1).join('_') })))); }, []);
-  const fdsAvail = [...new Set(demo.map(d => d.fd))];
   const models = demo.filter(d => d.fd === fd).map(d => d.model);
+  useEffect(() => { if (models.length && !models.includes(model)) setModel(models[0]); }, [fd, demo]);  // fd별 가용 best 모델로
   useEffect(() => { api.engines(fd).then(d => { const es = (d?.engines || []).sort((a, b) => a.true_rul - b.true_rul); setEngines(es); if (es[0]) setUnit(es[0].unit); }); }, [fd]);
-  useEffect(() => { if (unit != null) api.engine(fd, model, unit).then(setData); api.conformal(fd, 'tcn').then(c => setQ(c?.interval_halfwidth_q || null)); }, [fd, model, unit]);
+  useEffect(() => { if (unit != null) api.engine(fd, model, unit).then(setData); api.conformal(fd, model).then(c => setQ(c?.interval_halfwidth_q || null)); }, [fd, model, unit]);
   return (
     <Card title="엔진 RUL 뷰어 — conformal 신뢰구간" sub="예측(점선)·실제(초록)·90% 구간(음영)·정비 경보 임계">
       <div className="seg-nav" style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
@@ -106,7 +106,10 @@ function EngineViewer() {
 function Analysis({ sweep, found }) {
   const [fd, setFd] = useState('FD001');
   const [drift, setDrift] = useState(null), [xai, setXai] = useState(null), [lat, setLat] = useState(null), [err, setErr] = useState(null), [conf, setConf] = useState(null);
-  useEffect(() => { api.drift(fd).then(setDrift); api.xai(fd, 'tcn').then(setXai); api.latency(fd, 'tcn').then(setLat); api.error(fd, 'tcn').then(setErr); api.conformal(fd, 'tcn').then(setConf); }, [fd]);
+  const [demo, setDemo] = useState([]);
+  useEffect(() => { api.demoModels().then(d => setDemo((d?.models || []).map(s => ({ fd: s.split('_')[0], model: s.split('_').slice(1).join('_') })))); }, []);
+  const model = (demo.find(d => d.fd === fd)?.model) || 'tcn';  // fd별 실제 보유 데모 모델로 MLOps 표시
+  useEffect(() => { api.drift(fd).then(setDrift); api.xai(fd, model).then(setXai); api.latency(fd, model).then(setLat); api.error(fd, model).then(setErr); api.conformal(fd, model).then(setConf); }, [fd, model]);
   const lb = {}; (sweep?.rows || []).forEach(r => { const k = `${r.fd}|${r.model}`; if (!lb[k] || r.test_rmse < lb[k]) lb[k] = r.test_rmse; });
   const models = ['cnn', 'lstm', 'gru', 'bilstm', 'cnnlstm', 'tcn', 'dlinear', 'patchtst'];
   const fdBest = (f, m) => { let v = null; (sweep?.rows || []).forEach(r => { if (r.fd === f && r.model === m && (v == null || r.test_rmse < v)) v = r.test_rmse; }); return v; };
@@ -120,7 +123,7 @@ function Analysis({ sweep, found }) {
           { name: 'frozen+Ridge', color: '#94a3b8', data: FDS.map(f => found.frozen?.[f]?.full_ridge?.rmse) },
           { name: 'LoRA', color: '#a855f7', data: FDS.map(f => found.lora?.[f]?.full?.rmse) }]} yMin={15} yMax={40} fmt={v => v ? v.toFixed(0) : ''} height={220} />
       </Card>}
-      <div className="card"><div className="card-h sm"><div><div className="card-title">MLOps 패널</div><div className="card-sub">demo 모델(FD001 tcn) — best로 갱신 예정</div></div>
+      <div className="card"><div className="card-h sm"><div><div className="card-title">MLOps 패널</div><div className="card-sub">{`${fd} · best 모델 ${model}`}</div></div>
         <select value={fd} onChange={e => setFd(e.target.value)} style={{ marginLeft: 'auto' }}>{FDS.map(f => <option key={f}>{f}</option>)}</select></div>
         {conf?.empirical_coverage != null && <div className="muted" style={{ fontSize: 13, marginBottom: 8 }}>📐 Conformal: 목표 {(conf.target_coverage * 100)}% → <b>실측 {(conf.empirical_coverage * 100).toFixed(1)}%</b> (±{conf.interval_halfwidth_q} 사이클)</div>}
         {err?.by_rul_bucket && <div style={{ fontSize: 13, marginBottom: 8 }}>🎯 RUL구간 RMSE: {err.by_rul_bucket.map(b => `${b.range} ${b.rmse}`).join(' · ')} | 늦은예측 {Math.round(err.safety.late_ratio * 100)}%</div>}

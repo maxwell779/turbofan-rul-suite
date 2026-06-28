@@ -1,11 +1,11 @@
 {
   "fd": "FD001",
-  "model": "tcn",
+  "model": "patchtst",
   "alpha": 0.1,
   "target_coverage": 0.9,
   "empirical_coverage": 0.9,
-  "interval_halfwidth_q": 25.08,
-  "mean_width": 50.16,
-  "n_cal": 3272,
+  "interval_halfwidth_q": 20.59,
+  "mean_width": 41.18,
+  "n_cal": 2872,
   "n_test": 100
 }

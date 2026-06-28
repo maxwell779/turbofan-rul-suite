@@ -1,0 +1,15 @@
+{
+  "fd": "FD003",
+  "model": "patchtst",
+  "hp": {
+    "patch": 10,
+    "stride": 5,
+    "d_model": 64,
+    "layers": 3,
+    "revin": false
+  },
+  "loss": "asym",
+  "val_rmse": 11.202,
+  "test_rmse": 12.886,
+  "nasa": 255.3
+}

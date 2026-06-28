@@ -14,11 +14,17 @@ from ..config import EXP
 DEMO = EXP / "demo"; DEMO.mkdir(parents=True, exist_ok=True)
 
 
-def train(fd="FD001", model="tcn", hp=None, loss="mse", epochs=45, lr=1e-3, patience=10):
+def train(fd="FD001", model="tcn", hp=None, loss="mse", epochs=45, lr=1e-3, patience=10,
+          window=None, seed=42, max_train=None):
     hp = hp or dict(ch=64, levels=4, p=0.2)
+    torch.manual_seed(seed); np.random.seed(seed)
     dev = "cuda" if torch.cuda.is_available() else "cpu"
-    d = D.load(fd)
-    tl = DataLoader(TensorDataset(torch.tensor(d["Xtr"]), torch.tensor(d["ytr"])), batch_size=512, shuffle=True)
+    d = D.load(fd, window=window)
+    Xtr, ytr = d["Xtr"], d["ytr"]
+    if max_train and len(Xtr) > max_train:        # CPU 데모용 학습윈도 subsample(엔진 무관 균등)
+        idx = np.random.RandomState(seed).choice(len(Xtr), max_train, replace=False)
+        Xtr, ytr = Xtr[idx], ytr[idx]
+    tl = DataLoader(TensorDataset(torch.tensor(Xtr), torch.tensor(ytr)), batch_size=512, shuffle=True)
     Xva = torch.tensor(d["Xva"]).to(dev)
     net = build(model, d["n_feat"], d["window"], **hp).to(dev)
     opt = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-4)

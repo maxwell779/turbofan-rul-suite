@@ -56,7 +56,7 @@ def analyze(model_dir):
                            "pred": round(float(pred[worst[i]]), 1), "err": round(float(d_err[worst[i]]), 1)}
                           for i in range(len(worst))],
     }
-    json.dump(res, open(OUT / f"error_{fd}_{b['model']}.json", "w"), ensure_ascii=False, indent=2)
+    json.dump(res, open(OUT / f"error_{fd}_{b['model']}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     print(f"[error {fd}/{b['model']}] overall rmse={res['overall']['rmse']} | "
           f"임박RMSE={by_bucket[0]['rmse']} | 늦은예측 {late}/{len(true)}({res['safety']['late_ratio']*100:.0f}%)", flush=True)
     return res

@@ -8,27 +8,27 @@
   },
   "by_rul_bucket": [
     {
-      "range": "ÀÓ¹Ú(0-25)",
+      "range": "ìž„ë°•(0-25)",
       "n": 49,
       "rmse": 4.8,
       "mean_signed_err": 1.91
     },
     {
-      "range": "Áß°£(25-75)",
+      "range": "ì¤‘ê°„(25-75)",
       "n": 56,
       "rmse": 19.21,
       "mean_signed_err": 8.4
     },
     {
-      "range": "°Ç°­(75+)",
+      "range": "ê±´ê°•(75+)",
       "n": 143,
       "rmse": 15.86,
       "mean_signed_err": -1.22
     }
   ],
   "safety": {
-    "late_predictions(À§Çè)": 127,
-    "early_predictions(º¸¼ö)": 121,
+    "late_predictions(ìœ„í—˜)": 127,
+    "early_predictions(ë³´ìˆ˜)": 121,
     "late_ratio": 0.512,
     "mean_signed_err": 1.57
   },
