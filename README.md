@@ -3,6 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-console-009688?logo=fastapi&logoColor=white)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-22c55e?logo=github&logoColor=white)](https://maxwell779.github.io/turbofan-rul-suite/)
 ![Best RMSE](https://img.shields.io/badge/FD001%20RMSE-11.87-3b82f6)
 ![License](https://img.shields.io/badge/License-MIT-64748b)
 
